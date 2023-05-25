@@ -1,9 +1,19 @@
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
+const ejs = require('ejs');
 
+
+// Create an Express app
 const app = express();
 app.use(bodyParser.json());
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
+
+
+
+
 
 // Create a MySQL connection
 const connection = mysql.createConnection({
@@ -41,19 +51,17 @@ app.get('/api/word', (req, res) => {
   });
 });
 
-// Define a POST route to update the word in the database
-app.post('/api/word', (req, res) => {
-    const newWord = req.body.word;
-    connection.query('UPDATE words SET word = ? LIMIT 1', [newWord], (error) => {
-      if (error) {
-        console.error('Error executing MySQL query:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
-      }
-  
-      res.json({ message: 'Word updated successfully' });
-    });
+// Define routes
+app.post('/update', (req, res) => {
+  const newWord = req.body.word;
+
+  const query = 'UPDATE words SET word = ?';
+  connection.query(query, newWord, (err, result) => {
+    if (err) throw err;
+    console.log('Word updated successfully');
+    res.redirect('/');
   });
+});
 
 // Start the server
 const port = process.env.PORT || 3000;
